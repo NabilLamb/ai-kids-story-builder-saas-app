@@ -1,14 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import StorySubjectInput from "./_components/StoryTitleSubjectInput";
 import StoryType from "./_components/StoryType";
 import AgeGroup from "./_components/AgeGroup";
 import ImageStyle from "./_components/ImageStyle";
 import { Button } from "@heroui/button";
-import { chatSession } from "@/config/GeminiAi";
 import CustomLoader from "./_components/CustomLoader";
 import { fal } from "@fal-ai/client";
-import { toast } from "../hooks/use-toast";
 
 const CREATE_STORY_PROMPT = process.env.NEXT_PUBLIC_CREATE_STORY_PROMPT;
 
@@ -39,20 +37,12 @@ const CreateStory = () => {
 
   const generateImage = async (prompt: string) => {
     if (!prompt.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a prompt",
-        variant: "destructive",
-      });
+      alert("Please enter a prompt");
       return;
     }
 
     if (!process.env.NEXT_PUBLIC_FAL_KEY) {
-      toast({
-        title: "Error",
-        description: "FAL API key is not configured",
-        variant: "destructive",
-      });
+      alert("FAL API key is not configured");
       return;
     }
 
@@ -69,18 +59,11 @@ const CreateStory = () => {
 
       if (result.data.images?.[0]) {
         setCoverImage(result.data.images[0].url);
-        toast({
-          title: "Success",
-          description: "Image generated successfully!",
-        });
+        alert("Image generated successfully!");
       }
     } catch (error) {
       console.error("Image generation error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate image. Please try again.",
-        variant: "destructive",
-      });
+      alert("Failed to generate image. Please try again.");
     } finally {
       setImageLoading(false);
     }
@@ -99,16 +82,12 @@ const CreateStory = () => {
 
   const GenerateStory = async () => {
     if (!validateForm()) {
-      toast({
-        title: "Error",
-        description: "Please fill all required fields",
-        variant: "destructive",
-      });
+      alert("Please fill all required fields");
       return;
     }
 
     setLoading(true);
-    
+
     try {
       if (!CREATE_STORY_PROMPT) throw new Error("Missing story prompt configuration");
 
@@ -136,15 +115,13 @@ const CreateStory = () => {
       }
 
       const storyContent = await response.json();
-      
+
       if (!storyContent?.title || !storyContent?.chapters) {
         throw new Error("Invalid story structure received");
       }
 
-      // Generate cover image using AI-generated prompt
       await generateImage(storyContent.coverImagePrompt);
-      
-      // Save to database
+
       const saveResponse = await fetch("/api/save-story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -157,7 +134,7 @@ const CreateStory = () => {
           coverImage,
           chapters: storyContent.chapters,
           coverImagePrompt: storyContent.coverImagePrompt,
-          chapterImages: [] // Initialize empty array for chapter images
+          chapterImages: []
         }),
       });
 
@@ -165,18 +142,11 @@ const CreateStory = () => {
         throw new Error("Failed to save story to database");
       }
 
-      toast({
-        title: "Success",
-        description: "Story generated and saved successfully!",
-      });
+      alert("Story generated and saved successfully!");
 
     } catch (error: any) {
       console.error("Story generation error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate story",
-        variant: "destructive",
-      });
+      alert(error.message || "Failed to generate story");
     } finally {
       setLoading(false);
     }
@@ -209,15 +179,15 @@ const CreateStory = () => {
           {loading ? "Generating..." : "Generate Story"}
         </Button>
       </div>
-      
+
       <CustomLoader isLoading={loading || imageLoading} />
-      
+
       {coverImage && (
         <div className="mt-8">
           <h3 className="text-2xl font-bold mb-4">Generated Cover Image:</h3>
-          <img 
-            src={coverImage} 
-            alt="Story cover" 
+          <img
+            src={coverImage}
+            alt="Story cover"
             className="max-w-2xl rounded-lg shadow-lg"
           />
         </div>
