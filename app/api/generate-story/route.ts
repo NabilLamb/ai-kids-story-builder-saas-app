@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { chatSession } from '@/config/GeminiAi';
+import { chatSession } from '../../../config/GeminiAi';
 
 interface Chapter {
   title: string;
